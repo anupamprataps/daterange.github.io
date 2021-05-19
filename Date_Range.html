@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Date Picker</title>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" >
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" ></script>
+
+    <!-- Extensions Library (this will be hosted on a CDN eventually) -->
+    <script src="../../lib/tableau.extensions.1.latest.js"></script>
+
+    <!-- Our extension's code -->
+ <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+    <i class="fa fa-calendar"></i>&nbsp;
+    <span></span> <i class="fa fa-caret-down"></i>
+</div>
+
+
+  </head>
+  <body>
+
+    <script>
+   par1=''
+   par2=''
+   start = moment().subtract(29, 'days');
+   end = moment();
+   x1='';
+   x2='';
+  $(document).ready(function () {
+
+$(function() {
+
+
+
+                   
+
+          tableau.extensions.initializeAsync({'configure': configure}).then(function () {
+
+
+
+
+
+
+                   
+                  
+                  updateExtensionBasedOnSettings(tableau.extensions.settings.getAll());
+
+
+                   tableau.extensions.dashboardContent.dashboard.getParametersAsync().then(function (parameters) {
+        parameters.forEach(function (p) {
+          if(p.name==par1)
+          {
+            start=moment((p.currentValue.formattedValue));
+             $('#interval1').val(start);
+         }
+
+          if(p.name==par2)
+          {
+          end=moment((p.currentValue.formattedValue));
+          $('#interval2').val(end);
+           
+         }
+         $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        });
+
+        // This is used to manipulate what part of the UI is visible.  If there are no parameters
+        // found, we want to give you a message to tell you that you need to add one, otherwise, we
+        // show the table we created.
+
+      });
+
+                 //  $('#interval1').val(start);
+                 //  $('#interval2').val(end);
+                    
+
+                   tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
+        updateExtensionBasedOnSettings(settingsEvent.newSettings);
+      });
+
+
+
+
+    });
+
+function updateExtensionBasedOnSettings (settings) {
+    if (settings.selectedDatasources) {
+      par1=settings.selectedDatasources
+    }
+
+     if (settings.selectedDatasources1) {
+      par2=settings.selectedDatasources1
+    }
+
+
+}
+
+ function configure() { 
+    // ... code to configure the extension
+    // for example, set up and call displayDialogAsync() to create the configuration window 
+    // and set initial settings (defaultIntervalInMin)
+    // and handle the return payload 
+    // ...
+
+    const popupUrl = `${window.location.origin}/Samples/Parameters/uiNamespaceDialog.html`
+    const defaultIntervalInMin = '25';
+
+    tableau.extensions.ui.displayDialogAsync(popupUrl, defaultIntervalInMin,par1,par2, { height: 500, width: 500 }).then((closePayload) => {
+      // The promise is resolved when the dialog has been expectedly closed, meaning that
+      // the popup extension has called tableau.extensions.ui.closeDialog.
+      // ...
+      // The close payload is returned from the popup extension via the closeDialog() method.
+     // ....
+
+    }).catch((error) => {
+      //  ... 
+      // ... code for error handling
+    });
+  };  
+
+
+
+    function cb(start, end) {
+        tableau.extensions.dashboardContent.dashboard.getParametersAsync().then(function (parameters) {
+        parameters.forEach(function (p) {
+          if(p.name==par1)
+          {
+           p.changeValueAsync((start.format('YYYY-MM-DD')).toString())
+         }
+
+          if(p.name==par2)
+          {
+           p.changeValueAsync((end.format('YYYY-MM-DD')).toString())
+           
+         }
+        });
+
+        // This is used to manipulate what part of the UI is visible.  If there are no parameters
+        // found, we want to give you a message to tell you that you need to add one, otherwise, we
+        // show the table we created.
+
+      });
+
+
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    }
+
+    $('#reportrange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+           'Today': [moment(), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month': [moment().startOf('month'), moment().endOf('month')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    }, cb);
+    
+   // cb(start, end);
+
+
+
+});
+
+
+
+    // This is the entry point into the extension.  It initializes the Tableau Extensions Api, and then
+    // grabs all of the parameters in the workbook, processing each one individually.
+
+  });
+
+
+
+</script>
+  </body>
+</html>
